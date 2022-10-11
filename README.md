@@ -1,3 +1,3 @@
 # bash_scripts
-1. [CreateUser.sh](CreateUser.sh) create user
+1. [create_user_script.sh](create_user_script.sh) create user
 
