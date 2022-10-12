@@ -1,62 +1,55 @@
-#!/bin/bash
-_userName="X"
-_isSetPasswd="X"
-_uid="X"
-_gid="X"
-_isCreateHomeDir="X"
-_homeDir="X"
+#!/usr/bin/env bash
+# 处理脚本参数
+# -u 用户名
+# -p 密码
+# -m 创建home目录
 
-echo -n "Please Enter User Name : "
-read _userName
-#echo $_userName
+help='create_user_script.sh usage:
+            -u username
+            -p login password
+            -m create home dir , eg. /home/user
+            -h print help
+        '
 
-if [ -z $_userName ];then
-        echo -e "\n\033[31m Please Enter The User Name.\033[0m \n"
-	exit -1
+user=""
+pass=""
+createHomeDir=false
+
+while getopts "u:p:mh" opt_name; do # 通过循环，使用 getopts，按照指定参数列表进行解析，参数名存入 opt_name
+  case "$opt_name" in               # 根据参数名判断处理分支
+  'u')                              # -u
+    user="$OPTARG"                  # 从 $OPTARG 中获取参数值
+    ;;
+  'p') # -p
+    pass="$OPTARG"
+    ;;
+  'm') # -m
+    createHomeDir=true
+    ;;
+  'h')
+    echo "$help"
+    exit 0
+    ;;
+  ?) # 其它未指定名称参数
+    echo "$help"
+    exit 2
+    ;;
+  esac
+done
+
+CMD="useradd"
+
+if [ "$createHomeDir" == true ]; then
+  CMD=$CMD" -m"
 fi
 
-echo -n "If Create The Home Dir ? (y/Y/n/N) : "
-read _isCreateHomeDir
-
-if [ -z $_isCreateHomeDir ];then
-	_isCreateHomeDir="N"
+if [ "$pass" != "" ]; then
+  CMD=$CMD" -p$pass"
 fi
 
-#echo $_isCreateHomeDir
+echo "$CMD $user"
+$CMD "$user"
 
-case $_isCreateHomeDir in
-	y|Y)
-		echo -n "Please Enter The Home Dir Name Is : "
-		read _homeDir
-		if [ -z $_homeDir ]; then
-			sudo useradd -s "/bin/bash" -m $_userName
-		else
-			sudo useradd  -s "/bin/bash" -m -d $_homeDir $_userName
-		fi
-		;;
-	n|N)
-		sudo useradd -s "/bin/bash" $_userName
-		;;
-	*)
-		echo "Input Error"
-		exit -1
-		;;
-esac
-
-if [ $? != 0 ];then
-	echo "Create Linux User Fail."
-	exit -1
-fi 
-
-echo -n "If Set The $_userName's Password :(y/Y/n/N) "
-read _isSetPasswd
-
-if [ -z $_isSetPasswd ]; then
-	_isSetPasswd="N"
+if [ $? == 0 ]; then
+  echo "create linux user success."
 fi
-
-if [ $_isSetPasswd = "y" ] || [ $_isSetPasswd = "Y" ]; then
-     sudo  passwd $_userName
-fi
-
-echo "Create Linux User Success."
